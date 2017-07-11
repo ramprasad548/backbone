@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Add User</title>
+<script src="lib/jquery-1.9.1.min.js"></script>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans'
+	rel="stylesheet" type='text/css'>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+
+<!--[if lt IE 9]>
+<script src="assets/js/lib/html5shiv.js"></script>
+<script src="assets/js/lib/respond.min.js"></script>
+<![endif]-->
+
+<link rel="stylesheet" type="text/css" href='./assets/css/bootstrap.css'>
+</head>
+<body>
+	<form name="frmAddUser" id="frmAddUser" action="#" method="post" enctype="multipart/form-data">
+		<div class="container">
+			<header>
+			
+			<h1>Add New Portal User</h1></header>
+
+			<div class="row">
+				<div class="col-md-6">
+				<fieldset>
+				<legend>User Information</legend>
+				<label for="userId">User Name</label>
+				<input id="userId" name="userId" type="text" value="" placeholder="User Name" class="form-control">
+				<label for="userName">Full Name</label>
+				<input id="userName" name="userName" type="text" value="" placeholder="Full Name" class="form-control">
+				<label for="roleSelector">Role</label>
+				<select id="roleSelector" name="roleSelector" class="form-control">
+					<option value="">Choose a role</option>
+				</select>
+				</fieldset>
+				<button name="btnAddUser" id="btnAddUser" type="submit" class="btn btn-primary">Add User</button>
+				<button name="btnCancelAddUser" id="btnCancelAddUser"  type="reset" class="btn btn-primary">Cancel</button>
+				
+				<pre id="jsonOutput" style="margin-top:15px;">
+				
+				</pre>
+				</div>
+				<div class="col-md-6">
+					<!-- User Table -->
+					<div class="table-responsive">
+						<table id="usertable" class="table">
+						<caption>Current Users</caption>
+							<thead>
+								<tr>
+									<th>ID</th>
+									<th>UserName</th>
+									<th>Full Name</th>
+									<th>Role</th>
+								</tr>
+							</thead>
+							<tbody>
+								<!-- All Users Appended Below: -->
+
+							</tbody>
+
+						</table>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</form>
+	<script src="./assets/js/lib/jquery.js"></script>
+	<script src="./assets/js/lib/json2.js"></script>
+	<script type="text/javascript">
+	/*  window.onload = function() {
+			jQuery.ajax( {
+			    url: 'http://localhost:8080/oscar/users',
+			    type: 'GET',
+			    data: { content: JSON.stringify(objUser) },
+			    beforeSend : function( xhr ) {
+			        xhr.setRequestHeader( "Authorization", "BEARER " + access_token );
+			    },
+			    success: function( response ) {
+			      alert('PRASAD');
+			    }
+			} );
+	    } */
+		$(document).ready(function() {
+			
+			/**
+			 *
+			 *
+			 */
+			function postAddUser(frm) {		
+				alert(frm);
+				var objUser = {}
+				try {
+					objUser.userId = $(frm).find('#userId').val();
+					objUser.userName = $(frm).find('#userName').val();
+					objUser.role = $(frm).find('#roleSelector').find(":selected").val();
+					$.ajax( {
+					    url: 'http://localhost:8080/oscar/user/addUser',
+					    type: 'POST',
+					    data: JSON.stringify(objUser),
+				        dataType: 'json',
+				        contentType: "application/json",
+				         success: function(result,status,jqXHR ){
+				        	 $('pre#jsonOutput').text(JSON.stringify(result));
+				         },
+				         error(jqXHR, textStatus, errorThrown){
+				             //Do something
+				         } 
+					} );
+					
+				/* 	$.ajax({
+						url : "http://localhost:8080/oscar//user/addUser",
+						success : success
+					}); */
+					
+					//Will replace below with AJAX PUT to add new user service
+					$('pre#jsonOutput').text(JSON.stringify(objUser));
+				}
+				catch (e) {
+					console.error(e);
+					return false;
+				}
+				
+				return false;
+				
+			}
+			
+			/**
+			 * sets the roles selector to the distinct, available roles 
+			 *
+			 * @param allUsers - Array - Array of JSON objects for users
+			 */
+			function setRolesSelector(allUsers) {
+				
+				var arrSortedUsers = allUsers.slice(0);
+				
+				var arrRawRoles = [];
+				for (n in arrSortedUsers) {
+					arrRawRoles.push(arrSortedUsers[n].role)
+				}
+
+				arrRawRoles.sort(function(a,b) {
+				    var x = a.toLowerCase();
+				    var y = b.toLowerCase();
+				    return x < y ? -1 : x > y ? 1 : 0;
+				});
+
+				var arrDistinctRoles = [];
+				for (n in arrRawRoles) {
+					if ( ($.inArray(arrRawRoles[n],arrDistinctRoles)) == -1 )
+					{ 
+						arrDistinctRoles.push(arrRawRoles[n]);
+					}
+				}
+				
+				for (n in arrDistinctRoles) {
+					
+					let tempOption = document.createElement('option');
+					$(tempOption).attr('value',arrDistinctRoles[n]);
+					$(tempOption).text(arrDistinctRoles[n]);
+					
+					$('#roleSelector').append($(tempOption));
+				}
+
+				
+			}; //-- setRolesSelector
+			
+			/**
+			 * displays all users in a table, sorted by system ID
+			 *
+			 * @param allUsers - Array - Array of JSON objects for users
+			 */			 
+			function displayUsers(allUsers) {
+
+				var arrSortedUsers = allUsers.slice(0);				
+				arrSortedUsers.sort(function(a,b) {
+					
+					/* sort by userId */
+				    /* var x = a.userId.toLowerCase();
+				    var y = b.userId.toLowerCase(); */
+				    
+				    /* sort by LAST name */
+				    /* var x = a.userName.split(/\s+/)[1].toLowerCase();
+				    var y = b.userName.split(/\s+/)[1].toLowerCase(); */
+				    
+				    /* sort by System Id */
+				    var x = a.userSystemId;
+				    var y = b.userSystemId;
+				    return x < y ? -1 : x > y ? 1 : 0;
+				});
+
+				for (n in arrSortedUsers) {
+					
+					let newUserRow = document.createElement("tr");
+					let tdSysId = document.createElement("td");
+					let tdUserId = document.createElement("td");
+					let tdUserName = document.createElement("td");
+					let tdRole = document.createElement("td");
+					
+					$(tdSysId).html(arrSortedUsers[n].userSystemId);
+					$(tdUserId).html(arrSortedUsers[n].userId);
+					$(tdUserName).html(arrSortedUsers[n].userName);
+					$(tdRole).html(arrSortedUsers[n].role);
+
+					$(newUserRow).append(tdSysId);
+					$(newUserRow).append(tdUserId);
+					$(newUserRow).append(tdUserName);
+					$(newUserRow).append(tdRole);
+
+					$('#usertable tbody').append($(newUserRow));
+
+				}
+				
+			}; //-- displayUsers
+			
+			function success(data) {
+				displayUsers(data.userDetails);
+				
+				/* Until Get All Roles service is available, this will get distinct roles from the list of users.
+				   Should fix this later.
+				*/
+				setRolesSelector(data.userDetails);
+
+			};
+
+			$.ajax({
+				url : "http://localhost:8080/oscar/users",
+				success : success
+			});
+			
+			
+			$('#btnAddUser').click(function(event) {
+				alert('prasad');
+				return postAddUser($('#frmAddUser'));
+			});
+			
+		});
+	</script>
+
+</body>
+</html>
