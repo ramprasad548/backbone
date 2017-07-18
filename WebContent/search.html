@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Get Spills</title>
+<script src="./lib/jquery-1.9.1.min.js"></script>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans'
+	rel="stylesheet" type='text/css'>
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+
+<!--[if lt IE 9]>
+<script src="assets/js/lib/html5shiv.js"></script>
+<script src="assets/js/lib/respond.min.js"></script>
+<![endif]-->
+
+<link rel="stylesheet" type="text/css" href='./bootstrap/css/bootstrap.css'>
+</head>
+<body>
+	
+		<div class="container">
+			<header>
+			
+			<h1>Get All Spills</h1></header>
+
+			<div class="row">
+				<div class="col-md-6">
+	 			</div>
+				<div class="col-md-6">
+				<fieldset>
+				<label for="userId">Select Year</label>
+				<select class="year" name="year" id="year">
+    <option value="">Select Year</option>
+</select>
+<label for="region">Select Region</label>
+				<select class="region" name="region" id="region">
+    <option value="">Select Region</option>
+</select>
+	<table id="usertable" class="table" style="border:1px solid #ccc">
+						<caption style="text-align: left">Spill Details</caption>
+							<thead>
+								<tr>
+									<th style="text-align: left">Spill Number</th>
+									<th style="text-align: left">Spill Source</th>
+									<th style="text-align: left">Disposition</th>
+									<th style="text-align: left">Response Officer</th>
+								</tr>
+							</thead>
+							<tbody>
+								<!-- All Users Appended Below: -->
+
+							</tbody>
+
+						</table>
+</fieldset>
+
+				</div>
+
+			</div>
+		</div> 
+ <script type="text/javascript">
+		$(document).ready(function() {
+			$( ".year" ).change(function() {
+				var selectedYear = $('#year').find(":selected").text(); 
+				try {   
+					 searchSpillByYearRegion(selectedYear, $('#region option:selected').val());
+				}
+				catch (e) {
+					console.error(e);
+					return false;
+				}
+				return false;
+				});
+			$( ".region" ).change(function() {
+				var selectedRegion = $('#region').find(":selected").text(); 
+				try {   
+					 searchSpillByYearRegion($('#year option:selected').val(), selectedRegion);
+				}
+				catch (e) {
+					console.error(e);
+					return false;
+				}
+				
+				return false;
+				});
+			var currentYear = (new Date).getFullYear();
+			for(y = 2000; y <= currentYear; y++) {
+			        var optn = document.createElement("OPTION");
+			        optn.text = y;
+			        optn.value = y;
+			        if (y == 2017) {
+			            optn.selected = true;
+			        }
+			        document.getElementById('year').options.add(optn);
+			} 
+			$(window).on("load", region);
+			function region() {	   
+				try {
+					$.ajax( {
+					    url: 'http://localhost:8080/oscar/region',
+					    type: 'GET',
+					    dataType: 'json',
+				        contentType: "application/json",
+				         success: function(result,status,jqXHR ){ 
+				        	 var myObj, i, j, x = "";
+				        	 var obj = $.parseJSON(JSON.stringify(result));
+				        	 for(i in obj) {
+							        var optn = document.createElement("OPTION");
+							        optn.text =obj[i].partyValue;
+							        optn.value = obj[i].partyValue;
+							        if (obj[i].partyValue == 1) {
+							            optn.selected = true;
+							        }
+							        document.getElementById('region').options.add(optn);
+							        searchSpillByYearRegion($('#year option:selected').val(), $('#region option:selected').val());
+							} 
+				            },
+				         error(jqXHR, textStatus, errorThrown){
+				             //Do something
+				         } 
+					} );
+				}
+				catch (e) {
+					console.error(e);
+					return false;
+				}
+				return false;
+			}
+			function searchSpillByYear(selectedYear) {	  
+				try {
+					$.ajax( {
+					    url: 'http://localhost:8080/oscar/search/mosa/'+selectedYear,
+					    type: 'GET',
+					    dataType: 'json',
+				        contentType: "application/json",
+				         success: function(result,status,jqXHR ){
+				        	 var obj = $.parseJSON(JSON.stringify(result));
+				        	 prepareSpillResults(obj);
+				              },
+				         error(jqXHR, textStatus, errorThrown){
+				         } 
+					} );
+				}
+				catch (e) {
+					console.error(e);
+					return false;
+				}
+				return false;
+			}
+			function searchSpillByYearRegion(selectedYear,regionId) {	  
+				try {
+				 	$.ajax( {
+					    url: 'http://localhost:8080/oscar/search/mosa/'+selectedYear+'/'+regionId,
+					    type: 'GET',
+					    dataType: 'json',
+				        contentType: "application/json",
+				         success: function(result,status,jqXHR ){
+				        	 var obj = $.parseJSON(JSON.stringify(result));
+				        	 prepareSpillResults(obj);
+				        	},
+				         error(jqXHR, textStatus, errorThrown){
+				        
+				         } 
+					} );
+					
+		 		
+				}
+				catch (e) {
+					console.error(e);
+					return false;
+				}
+				
+				return false;
+				
+			}
+			function prepareSpillResults(obj)
+			{
+				 $('#usertable tbody').empty();
+	        	  for (i in obj.spill) {
+	        		  let newUserRow = document.createElement("tr");
+						let tdSpillNumber = document.createElement("td");
+						let tdSpillSource = document.createElement("td");
+						let tdDisPosition = document.createElement("td");
+						let tdResponseOfficer = document.createElement("td");
+						
+						$(tdSpillNumber).html(obj.spill[i].spillNumber);
+						$(tdSpillSource).html(obj.spill[i].spillSource); 
+						$(tdDisPosition).html(obj.spill[i].disPosition); 
+						$(tdResponseOfficer).html(obj.spill[i].responseOfficer); 
+						$(newUserRow).append(tdSpillNumber);
+						$(newUserRow).append(tdSpillSource);
+						$(newUserRow).append(tdDisPosition);
+						$(newUserRow).append(tdResponseOfficer);
+					
+						$('#usertable tbody').append($(newUserRow));
+	        		  
+	        		}
+			}
+			 
+		});
+	</script>
+
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Draft OSCAR HTML5 Template</title>
+<meta name="description" content="" />
+<meta name="viewport"
+	content="width=device-width, minimum-scale=1, initial-scale=1" />
+<!-- Google Fonts -->
+<link rel="stylesheet"
+	href="https://fonts.googleapis.com/css?family=Open+Sans" />
+<link rel="stylesheet"
+	href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto" />
+<link rel="stylesheet"
+	href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto|Roboto+Condensed" />
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-2"></div>
+			<div class="col-md-8">
+
+				<section>
+					<h1>Testing Image Base64 Encode to DataURI</h1>
+					<div id="test-block"></div>
+				</section>
+
+				<section>
+					<form name="image-test" id="image-test" action="" method="POST"
+						enctype="multipart/form-data">
+						<input type="file" name="the-image" id="the-image" />
+						<img name="image-for-upload" id="image-for-upload" src="#" width="100" style="display:none"/>
+						<button name="callREST" id="callREST">Display Image JSON</button>
+					</form>
+
+				</section>
+				<hr />
+				<section>
+					<div id="displayJSON"></div>
+				</section>
+			</div>
+			<div class="col-md-2"></div>
+		</div>
+	</div>
+	<!-- scripts -->
+	<!-- hosted scripts below -->
+	<script	src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script>
+	$(document).ready(function() 
+			{
+			function postAddUser(frm) {		
+				 var x = document.getElementById("the-image").value;
+				    
+				alert(frm);
+				var identifier = {
+						"userName":"Robert",
+						"role":"Robert",
+						"userId":"Robert"
+				}
+			 
+				var objUser = {}
+				try {
+					
+					// var formData = new FormData($(this)[0]);
+					objUser.systemId = 2;
+					alert(document.getElementById("the-image"));
+					objUser.file = x;
+					objUser.docType ="png";
+					
+					var objectA = $.extend({}, { identifier }, objUser);
+
+					alert(JSON.stringify(objectA));
+					$.ajax( {
+					    url: 'http://localhost:8080/oscar/uploadDocument',
+					    type: 'POST',
+					    data: JSON.stringify(objectA),
+				        dataType: 'json',
+				        contentType: "application/json",
+				         success: function(result,status,jqXHR ){
+				        	 $('pre#jsonOutput').text(JSON.stringify(result));
+				         },
+				         error(jqXHR, textStatus, errorThrown){
+				             //Do something
+				         } 
+					} );
+					
+				/* 	$.ajax({
+						url : "http://localhost:8080/oscar//user/addUser",
+						success : success
+					}); */
+					
+					//Will replace below with AJAX PUT to add new user service
+					$('pre#jsonOutput').text(JSON.stringify(objectA));
+				}
+				catch (e) {
+					console.error(e);
+					return false;
+				}
+				
+				return false;
+				
+			};
+			
+			$('#callREST').click(function(event) {
+				alert('prasad');
+				return postAddUser($('#frmAddUser'));
+			});
+			});
+	</script>
+
+</body>
+</html>
